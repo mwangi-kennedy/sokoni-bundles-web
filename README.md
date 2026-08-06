@@ -1,36 +1,39 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-## Getting Started
+# Kib Data Hub
 
-First, run the development server:
+A modern, high-performance web platform designed for browsing and purchasing discounted Safaricom and Airtel data bundles, voice minutes, SMS packages, and airtime top-ups in Kenya.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+---
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+##  What the Platform Does
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Kib Data Hub provides an intuitive, mobile-first interface for users to discover and order telco offers at rates lower than standard USSD menus.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Key Capabilities
+* **Multi-Carrier Offer Catalog:** Browse discounted Safaricom and Airtel internet bundles, voice minutes, SMS, and airtime top-ups in one unified interface.
+* **Smart Category Filtering:** Instantly filter deals by type—Bulk Bundles, Minutes, Calls & Airtime, SMS, and Special Offers.
+* **Okoa Jahazi Compatibility Signals:** Clear indicators highlighting packages that deliver successfully even with active Okoa Jahazi debt.
+* **Quick Till Payment Flow:** Integrated display of **Buy Goods Till Number `4129381`** with 1-click copy functionality and pre-filled WhatsApp order verification.
+* **Real-time Search & Discovery:** Dynamic instant search across package sizes (e.g., 1GB, 10GB, 300 Mins) and pricing tiers.
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+##  Built With
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+* **Frontend Framework:** Next.js (App Router)
+* **Language:** TypeScript
+* **Styling & UI:** Tailwind CSS (Dark-Mode Tech Theme)
+* **Icons:** Lucide React
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+##  Production Roadmap
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+The platform is currently operating as an interactive digital catalog with manual Till + WhatsApp confirmation. The next phases of development will introduce full end-to-end automation:
 
+- [x] **Phase 1: Storefront & Catalog UI** — Dynamic bundle display, category filters, and mobile-first ordering modals.
+- [ ] **Phase 2: Safaricom Daraja 3.0 API Integration** — Automated M-Pesa STK Push prompts directly on the website during checkout.
+- [ ] **Phase 3: Automated Fulfillment Engine** — Integration with an automated SIM/USSD gateway to dispatch data gifts instantly upon payment confirmation.
+- [ ] **Phase 4: Order Tracking & History** — Live transaction status tracking for users and an administrative dashboard for inventory and sales reconciliation.
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
