@@ -21,7 +21,8 @@ import {
   Mail,
   MapPin,
   Headphones,
-  Zap
+  Zap,
+  Loader2
 } from 'lucide-react';
 
 export default function Home() {
@@ -30,6 +31,10 @@ export default function Home() {
   const [activeBundle, setActiveBundle] = useState<Bundle | null>(null);
   const [copiedTill, setCopiedTill] = useState(false);
   const [recipientPhone, setRecipientPhone] = useState('');
+  
+  // STK Push Payment States
+  const [stkLoading, setStkLoading] = useState(false);
+  const [stkStatus, setStkStatus] = useState<{ type: 'success' | 'error' | 'info'; message: string } | null>(null);
 
   const tillNumber = '4129381';
 
@@ -47,6 +52,62 @@ export default function Home() {
     navigator.clipboard.writeText(tillNumber);
     setCopiedTill(true);
     setTimeout(() => setCopiedTill(false), 2000);
+  };
+
+  const handleOpenModal = (bundle: Bundle) => {
+    setActiveBundle(bundle);
+    setStkStatus(null);
+  };
+
+  const handleCloseModal = () => {
+    setActiveBundle(null);
+    setStkStatus(null);
+    setStkLoading(false);
+  };
+
+  const handleStkPush = async () => {
+    if (!recipientPhone || recipientPhone.trim().length < 10) {
+      setStkStatus({ type: 'error', message: 'Please enter a valid 10-digit M-Pesa phone number.' });
+      return;
+    }
+
+    if (!activeBundle) return;
+
+    setStkLoading(true);
+    setStkStatus({ type: 'info', message: 'Initiating M-Pesa payment prompt on your phone...' });
+
+    try {
+      const response = await fetch('/api/stkpush', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          phoneNumber: recipientPhone,
+          amount: activeBundle.price,
+          bundleId: activeBundle.id,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        setStkStatus({
+          type: 'success',
+          message: 'STK Push sent! Please enter your M-Pesa PIN on your phone to complete.',
+        });
+      } else {
+        setStkStatus({
+          type: 'error',
+          message: data.message || 'Failed to trigger M-Pesa prompt. Please try again.',
+        });
+      }
+    } catch (err) {
+      setStkStatus({
+        type: 'error',
+        message: 'Network error occurred while connecting to M-Pesa service.',
+      });
+    } finally {
+      setStkLoading(false);
+    }
   };
 
   const filteredBundles = useMemo(() => {
@@ -221,7 +282,7 @@ export default function Home() {
                     </div>
 
                     <button
-                      onClick={() => setActiveBundle(bundle)}
+                      onClick={() => handleOpenModal(bundle)}
                       className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 py-3 text-sm font-bold text-slate-950 transition-all duration-200 hover:brightness-110 shadow-lg shadow-emerald-500/20"
                     >
                       <span>Buy Package</span>
@@ -240,7 +301,7 @@ export default function Home() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-md">
           <div className="relative w-full max-w-md rounded-3xl border border-slate-800 bg-slate-900 p-6 shadow-2xl">
             <button
-              onClick={() => setActiveBundle(null)}
+              onClick={handleCloseModal}
               className="absolute right-4 top-4 rounded-full p-2 text-slate-400 hover:bg-slate-800 hover:text-white"
             >
               <X className="h-5 w-5" />
@@ -262,13 +323,13 @@ export default function Home() {
 
             <div className="mt-5">
               <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                Recipient Phone Number (Where bundle will be sent)
+                M-Pesa Phone Number (Receives PIN prompt & Bundle)
               </label>
               <div className="relative">
                 <Phone className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
                 <input
                   type="tel"
-                  placeholder="e.g. 0712345678"
+                  placeholder="e.g. 0790036399"
                   value={recipientPhone}
                   onChange={(e) => setRecipientPhone(e.target.value)}
                   className="w-full rounded-xl border border-slate-800 bg-slate-950 py-2.5 pl-10 pr-4 text-sm text-white placeholder-slate-600 outline-none focus:border-emerald-500"
@@ -297,21 +358,57 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="mt-6 flex gap-3">
+            {/* STK Push Status Box */}
+            {stkStatus && (
+              <div
+                className={`mt-4 p-3 rounded-xl text-xs border ${
+                  stkStatus.type === 'success'
+                    ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+                    : stkStatus.type === 'error'
+                    ? 'bg-rose-500/10 text-rose-400 border-rose-500/30'
+                    : 'bg-cyan-500/10 text-cyan-400 border-cyan-500/30'
+                }`}
+              >
+                {stkStatus.message}
+              </div>
+            )}
+
+            {/* Payment Trigger & Fallback Buttons */}
+            <div className="mt-6 flex flex-col gap-3">
               <button
-                onClick={() => setActiveBundle(null)}
-                className="flex-1 rounded-xl border border-slate-800 py-3 text-xs font-bold text-slate-400 hover:bg-slate-800"
+                onClick={handleStkPush}
+                disabled={stkLoading}
+                className="w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 py-3 text-xs font-bold text-slate-950 hover:brightness-110 transition-all shadow-lg shadow-emerald-500/20 disabled:opacity-50"
               >
-                Close
+                {stkLoading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>Sending M-Pesa Prompt...</span>
+                  </>
+                ) : (
+                  <>
+                    <Zap className="h-4 w-4" />
+                    <span>Pay with M-Pesa STK Push</span>
+                  </>
+                )}
               </button>
-              <a
-                href={`https://wa.me/?text=Hello%20Kib%20Data%20Hub,%20I%20have%20sent%20KSh%20${activeBundle.price}%20to%20Till%20${tillNumber}%20for%20${encodeURIComponent(activeBundle.provider)}%20${encodeURIComponent(activeBundle.dataAmount)}.%20Recipient%20Phone:%20${encodeURIComponent(recipientPhone || 'Unspecified')}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-emerald-500 py-3 text-xs font-bold text-slate-950 hover:bg-emerald-400 transition-colors shadow-lg shadow-emerald-500/20"
-              >
-                <MessageSquare className="h-4 w-4" /> Confirm on WhatsApp
-              </a>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={handleCloseModal}
+                  className="flex-1 rounded-xl border border-slate-800 py-2.5 text-xs font-bold text-slate-400 hover:bg-slate-800"
+                >
+                  Close
+                </button>
+                <a
+                  href={`https://wa.me/?text=Hello%20Kib%20Data%20Hub,%20I%20have%20sent%20KSh%20${activeBundle.price}%20to%20Till%20${tillNumber}%20for%20${encodeURIComponent(activeBundle.provider)}%20${encodeURIComponent(activeBundle.dataAmount)}.%20Recipient%20Phone:%20${encodeURIComponent(recipientPhone || 'Unspecified')}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-slate-800 border border-slate-700 py-2.5 text-xs font-bold text-slate-200 hover:bg-slate-700 transition-colors"
+                >
+                  <MessageSquare className="h-3.5 w-3.5 text-emerald-400" /> Confirm Manual Pay
+                </a>
+              </div>
             </div>
           </div>
         </div>

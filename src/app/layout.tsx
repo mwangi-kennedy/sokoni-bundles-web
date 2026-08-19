@@ -17,7 +17,11 @@ export const metadata: Metadata = {
   description: 'Buy cheap Safaricom & Airtel data bundles, voice minutes, and airtime instantly via Till 4129381. Okoa Jahazi friendly.',
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   return (
     <html
       lang="en"
